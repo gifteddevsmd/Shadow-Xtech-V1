@@ -115,10 +115,10 @@ const port = process.env.PORT || 9090;
   
   let up = `> 𝐆ᴇᴛ 𝐑ɪɢʜᴛ 𝐖ɪᴛᴄʜ𝐀 🩷🎀 .
 ╭───❍「 *𝐂ᴏɴɴᴇᴄᴛᴇ𝐃* 」
-┃ 🎀 𝐗ᴇᴏɴ 𝐗ᴛᴇᴄʜ 𝐁ᴏᴛ; ${currentDate},
+┃ 🎀 𝐒ʜᴀᴅᴏᴡ 𝐗ᴛᴇᴄʜ 𝐁ᴏᴛ
 ╰───────────❍
 ╭───❍「 *𝐁ᴏᴛ 𝐑ᴇᴘᴏ* 」
-┃ [**Here**](https://github.com/Black-Tappy/XEON-XMD) star repo!
+┃ [**Here**](https://github.com/Tappy-Black/Shadow-Xtech-V1) star repo!
 ╰───────────❍
 ╭───❍「 *𝐉ᴏɪɴ 𝐂ʜᴀɴɴᴇ𝐋* 」
 ┃ [**Here**](https://whatsapp.com/channel/0029VasHgfG4tRrwjAUyTs10) to join!
