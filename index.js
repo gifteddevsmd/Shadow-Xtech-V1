@@ -20,15 +20,15 @@ const {
     fetchLatestBaileysVersion,
     Browsers
   } = require('@whiskeysockets/baileys')
-  
-  
+
+
   const l = console.log
   const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson } = require('./lib/functions')
   const { AntiDelDB, initializeAntiDeleteSettings, setAnti, getAnti, getAllAntiDeleteSettings, saveContact, loadMessage, getName, getChatSummary, saveGroupMetadata, getGroupMetadata, saveMessageCount, getInactiveGroupMembers, getGroupMembersMessageCount, saveMessage } = require('./data')
   const fs = require('fs')
   const ff = require('fluent-ffmpeg')
   const P = require('pino')
-  const config = require('./config')
+  const config = require('./config') // Ensure config is loaded
   const GroupEvents = require('./lib/groupevents');
   const qrcode = require('qrcode-terminal')
   const StickersTypes = require('wa-sticker-formatter')
@@ -43,14 +43,16 @@ const {
   const Crypto = require('crypto')
   const path = require('path')
   const prefix = config.PREFIX
-  
-  const ownerNumber = ['254732297194']
-  
+
+  const callHandler = require('./lib/callhandler');
+
+  const ownerNumber = ['254759000340']
+
   const tempDir = path.join(os.tmpdir(), 'cache-temp')
   if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir)
   }
-  
+
   const clearTempDir = () => {
       fs.readdir(tempDir, (err, files) => {
           if (err) throw err;
@@ -61,10 +63,10 @@ const {
           }
       });
   }
-  
+
   // Clear the temp directory every 5 minutes
   setInterval(clearTempDir, 5 * 60 * 1000);
-  
+
   //===================SESSION-AUTH============================
 if (!fs.existsSync(__dirname + '/sessions/creds.json')) {
 if(!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!')
@@ -79,14 +81,14 @@ console.log("Session downloaded ✅")
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 9090;
-  
+
   //=============================================
-  
+
   async function connectToWA() {
   console.log("Connecting to WhatsApp ⏳️...");
   const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/sessions/')
   var { version } = await fetchLatestBaileysVersion()
-  
+
   const conn = makeWASocket({
           logger: P({ level: 'silent' }),
           printQRInTerminal: false,
@@ -95,15 +97,15 @@ const port = process.env.PORT || 9090;
           auth: state,
           version
           })
-      
-  conn.ev.on('connection.update', (update) => {
+
+  conn.ev.on('connection.update', async (update) => { // Added 'async' here
   const { connection, lastDisconnect } = update
   if (connection === 'close') {
   if (lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut) {
   connectToWA()
   }
   } else if (connection === 'open') {
-  console.log('🧬 Installing Plugins')
+  console.log('🕹️ Installing Plugins')
   const path = require('path');
   fs.readdirSync("./plugins/").forEach((plugin) => {
   if (path.extname(plugin).toLowerCase() == ".js") {
@@ -111,28 +113,38 @@ const port = process.env.PORT || 9090;
   }
   });
   console.log('Plugins installed successful ✅')
-  console.log('Bot connected to whatsapp ✅')
-  
-  let up = `╭══════════════⊷
-┃ ⚡𝗣𝗢𝗣𝗞𝗜𝗗 𝗫𝗧𝗘𝗖𝗛 𝗕𝗢𝗧
-╰══════════════⊷
-╭══════════════⊷
-┃ 🪆𝗥𝗘𝗣𝗢
-┃https://github.com/Popkiddevs/POPKID-XTECH
-╰══════════════⊷
-╭══════════════⊷
-┃ ❤️‍🩹𝗦𝗘𝗦𝗦𝗜𝗢𝗡 𝗜𝗗
-┃https://popkidpairfine.onrender.com/pair
-╰══════════════⊷
-╭══════════════⊷
-┃ ғᴏʀᴋ ᴀɴᴅ sᴛᴀʀ ᴏᴜʀ ʀᴇᴘᴏ
-┃ ғᴏʀ ᴄᴏᴜʀᴀɢᴇ ᴘʟᴇᴀsᴇ
-╰══════════════⊷
-╭══════════════⊷
-┃ 𝐏𝐎𝐏𝐊𝐈𝐃
-┃+254732297194
-╰══════════════⊷`;
-    conn.sendMessage(conn.user.id, { image: { url: `https://files.catbox.moe/e6rhto.jpg` }, caption: up })
+  console.log('Bot connected to whatsapp 🪆')
+
+  // --- NEW: Initialize the call handler here ---
+  callHandler(conn, config.ANTICALL); // Pass conn and the anticall setting from config
+  // ---------------------------------------------
+
+  // --- NEW: Newsletter Follow ---
+  try {
+    await conn.newsletterFollow("120363421564278292@newsletter");
+    console.log("📬 Followed Shadow-Xtech newsletter.");
+  } catch (e) {
+    console.error("❌ Failed to follow newsletter:", e);
+  }
+  // ------------------------------
+
+  let up = `*✨ Hello, Shadow-Xtech User! ✨*
+
+╭─〔 *🤖 SHADOW XTECH BOT* 〕  
+├─▸ *Ultrasonic, Speed and Power By Black-Tappy!*  
+╰─➤ *Your New WhatsApp Sidekick is Here!*
+
+*🩷Thank you for Choosing Shadow-Xtech!*
+
+╭──〔 🔗 *Quick Links* 〕  
+├─ 📢 *Join Our Channel:*  
+│   Click [**Here**](https://whatsapp.com/channel/0029VasHgfG4tRrwjAUyTs10) to join!  
+├─ ⭐ *Give Us a Star:*  
+│   Star Us [**Here**](https://github.com/Tappy-Black/Shadow-Xtech-V1)!  
+╰─🛠️ *Prefix:* \`${prefix}\`
+
+> _© *Powered By Black-Tappy*_`;
+    conn.sendMessage(conn.user.id, { image: { url: `https://files.catbox.moe/og4tsk.jpg` }, caption: up })
   }
   })
   conn.ev.on('creds.update', saveCreds)
@@ -147,17 +159,17 @@ const port = process.env.PORT || 9090;
       }
     }
   });
-  //============================== 
+  //==============================
 
-  conn.ev.on("group-participants.update", (update) => GroupEvents(conn, update));	  
-	  
+  conn.ev.on("group-participants.update", (update) => GroupEvents(conn, update));
+
   //=============readstatus=======
-        
+
   conn.ev.on('messages.upsert', async(mek) => {
     mek = mek.messages[0]
     if (!mek.message) return
-    mek.message = (getContentType(mek.message) === 'ephemeralMessage') 
-    ? mek.message.ephemeralMessage.message 
+    mek.message = (getContentType(mek.message) === 'ephemeralMessage')
+    ? mek.message.ephemeralMessage.message
     : mek.message;
     //console.log("New Message Detected:", JSON.stringify(mek, null, 2));
   if (config.READ_MESSAGE === 'true') {
@@ -177,9 +189,9 @@ const port = process.env.PORT || 9090;
       react: {
         text: randomEmoji,
         key: mek.key,
-      } 
+      }
     }, { statusJidList: [mek.key.participant, jawadlike] });
-  }                       
+  }
   if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_STATUS_REPLY === "true"){
   const user = mek.key.participant
   const text = `${config.AUTO_STATUS_MSG}`
@@ -219,7 +231,7 @@ const port = process.env.PORT || 9090;
   conn.sendMessage(from, { text: teks }, { quoted: mek })
   }
   const udp = botNumber.split('@')[0];
-    const jawad = ('254732297194', '254732297194', '254732297194');
+    const jawad = ('254759000340', '254756360306', '254105325084');
     let isCreator = [udp, jawad, config.DEV]
 					.map(v => v.replace(/[^0-9]/g) + '@s.whatsapp.net')
 					.includes(mek.sender);
@@ -265,41 +277,41 @@ const port = process.env.PORT || 9090;
 					return;
 				}
  //================ownerreact==============
-    
-if (senderNumber.includes("254732297194") && !isReact) {
+
+if (senderNumber.includes("254759000340") && !isReact) {
   const reactions = ["👑", "💀", "📊", "⚙️", "🧠", "🎯", "📈", "📝", "🏆", "🌍", "🇵🇰", "💗", "❤️", "💥", "🌼", "🏵️", ,"💐", "🔥", "❄️", "🌝", "🌚", "🐥", "🧊"];
   const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
   m.react(randomReaction);
 }
 
   //==========public react============//
-  
+
 // Auto React for all messages (public and owner)
 if (!isReact && config.AUTO_REACT === 'true') {
     const reactions = [
-        '🌼', '❤️', '💐', '🔥', '🏵️', '❄️', '🧊', '🐳', '💥', '🥀', '❤‍🔥', '🥹', '😩', '🫣', 
-        '🤭', '👻', '👾', '🫶', '😻', '🙌', '🫂', '🫀', '👩‍🦰', '🧑‍🦰', '👩‍⚕️', '🧑‍⚕️', '🧕', 
-        '👩‍🏫', '👨‍💻', '👰‍♀', '🦹🏻‍♀️', '🧟‍♀️', '🧟', '🧞‍♀️', '🧞', '🙅‍♀️', '💁‍♂️', '💁‍♀️', '🙆‍♀️', 
-        '🙋‍♀️', '🤷', '🤷‍♀️', '🤦', '🤦‍♀️', '💇‍♀️', '💇', '💃', '🚶‍♀️', '🚶', '🧶', '🧤', '👑', 
-        '💍', '👝', '💼', '🎒', '🥽', '🐻', '🐼', '🐭', '🐣', '🪿', '🦆', '🦊', '🦋', '🦄', 
-        '🪼', '🐋', '🐳', '🦈', '🐍', '🕊️', '🦦', '🦚', '🌱', '🍃', '🎍', '🌿', '☘️', '🍀', 
-        '🍁', '🪺', '🍄', '🍄‍🟫', '🪸', '🪨', '🌺', '🪷', '🪻', '🥀', '🌹', '🌷', '💐', '🌾', 
-        '🌸', '🌼', '🌻', '🌝', '🌚', '🌕', '🌎', '💫', '🔥', '☃️', '❄️', '🌨️', '🫧', '🍟', 
-        '🍫', '🧃', '🧊', '🪀', '🤿', '🏆', '🥇', '🥈', '🥉', '🎗️', '🤹', '🤹‍♀️', '🎧', '🎤', 
-        '🥁', '🧩', '🎯', '🚀', '🚁', '🗿', '🎙️', '⌛', '⏳', '💸', '💎', '⚙️', '⛓️', '🔪', 
-        '🧸', '🎀', '🪄', '🎈', '🎁', '🎉', '🏮', '🪩', '📩', '💌', '📤', '📦', '📊', '📈', 
-        '📑', '📉', '📂', '🔖', '🧷', '📌', '📝', '🔏', '🔐', '🩷', '❤️', '🧡', '💛', '💚', 
-        '🩵', '💙', '💜', '🖤', '🩶', '🤍', '🤎', '❤‍🔥', '❤‍🩹', '💗', '💖', '💘', '💝', '❌', 
-        '✅', '🔰', '〽️', '🌐', '🌀', '⤴️', '⤵️', '🔴', '🟢', '🟡', '🟠', '🔵', '🟣', '⚫', 
+        '🌼', '❤️', '💐', '🔥', '🏵️', '❄️', '🧊', '🐳', '💥', '🥀', '❤‍🔥', '🥹', '😩', '🫣',
+        '🤭', '👻', '👾', '🫶', '😻', '🙌', '🫂', '🫀', '👩‍🦰', '🧑‍🦰', '👩‍⚕️', '🧑‍⚕️', '🧕',
+        '👩‍🏫', '👨‍💻', '👰‍♀', '🦹🏻‍♀️', '🧟‍♀️', '🧟', '🧞‍♀️', '🧞', '🙅‍♀️', '💁‍♂️', '💁‍♀️', '🙆‍♀️',
+        '🙋‍♀️', '🤷', '🤷‍♀️', '🤦', '🤦‍♀️', '💇‍♀️', '💇', '💃', '🚶‍♀️', '🚶', '🧶', '🧤', '👑',
+        '💍', '👝', '💼', '🎒', '🥽', '🐻', '🐼', '🐭', '🐣', '🪿', '🦆', '🦊', '🦋', '🦄',
+        '🪼', '🐋', '🐳', '🦈', '🐍', '🕊️', '🦦', '🦚', '🌱', '🍃', '🎍', '🌿', '☘️', '🍀',
+        '🍁', '🪺', '🍄', '🍄‍🟫', '🪸', '🪨', '🌺', '🪷', '🪻', '🥀', '🌹', '🌷', '💐', '🌾',
+        '🌸', '🌼', '🌻', '🌝', '🌚', '🌕', '🌎', '💫', '🔥', '☃️', '❄️', '🌨️', '🫧', '🍟',
+        '🍫', '🧃', '🧊', '🪀', '🤿', '🏆', '🥇', '🥈', '🥉', '🎗️', '🤹', '🤹‍♀️', '🎧', '🎤',
+        '🥁', '🧩', '🎯', '🚀', '🚁', '🗿', '🎙️', '⌛', '⏳', '💸', '💎', '⚙️', '⛓️', '🔪',
+        '🧸', '🎀', '🪄', '🎈', '🎁', '🎉', '🏮', '🪩', '📩', '💌', '📤', '📦', '📊', '📈',
+        '📑', '📉', '📂', '🔖', '🧷', '📌', '📝', '🔏', '🔐', '🩷', '❤️', '🧡', '💛', '💚',
+        '🩵', '💙', '💜', '🖤', '🩶', '🤍', '🤎', '❤‍🔥', '❤‍🩹', '💗', '💖', '💘', '💝', '❌',
+        '✅', '🔰', '〽️', '🌐', '🌀', '⤴️', '⤵️', '🔴', '🟢', '🟡', '🟠', '🔵', '🟣', '⚫',
         '⚪', '🟤', '🔇', '🔊', '📢', '🔕', '♥️', '🕐', '🚩', '🇵🇰'
     ];
 
     const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
     m.react(randomReaction);
 }
-          
-// custum react settings        
-                        
+
+// custum react settings
+
 // Custom React for all messages (public and owner)
 if (!isReact && config.CUSTOM_REACT === 'true') {
     // Use custom emojis from the configuration (fallback to default if not set)
@@ -307,21 +319,21 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
     const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
     m.react(randomReaction);
 }
-        
-  //==========WORKTYPE============ 
+
+  //==========WORKTYPE============
   if(!isOwner && config.MODE === "private") return
   if(!isOwner && isGroup && config.MODE === "inbox") return
   if(!isOwner && !isGroup && config.MODE === "groups") return
-   
-  // take commands 
-                 
+
+  // take commands
+
   const events = require('./command')
   const cmdName = isCmd ? body.slice(1).trim().split(" ")[0].toLowerCase() : false;
   if (isCmd) {
   const cmd = events.commands.find((cmd) => cmd.pattern === (cmdName)) || events.commands.find((cmd) => cmd.alias && cmd.alias.includes(cmdName))
   if (cmd) {
   if (cmd.react) conn.sendMessage(from, { react: { text: cmd.react, key: mek.key }})
-  
+
   try {
   cmd.function(conn, mek, m,{from, quoted, body, isCmd, command, args, q, text, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, isCreator, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply});
   } catch (e) {
@@ -345,9 +357,9 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
   ) {
   command.function(conn, mek, m,{from, l, quoted, body, isCmd, command, args, q, text, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, isCreator, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply})
   }});
-  
+
   });
-    //===================================================   
+    //===================================================
     conn.decodeJid = jid => {
       if (!jid) return jid;
       if (/:\d+@/gi.test(jid)) {
@@ -372,7 +384,7 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
               ...message.message.viewOnceMessage.message
           }
       }
-    
+
       let mtype = Object.keys(message.message)[0]
       let content = await generateForwardMessageContent(message, forceForward)
       let ctype = Object.keys(content)[0]
@@ -420,10 +432,10 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
       for await (const chunk of stream) {
           buffer = Buffer.concat([buffer, chunk])
       }
-    
+
       return buffer
     }
-    
+
     /**
     *
     * @param {*} jid
@@ -477,11 +489,11 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
       else if (copy.key.remoteJid.includes('@broadcast')) sender = sender || copy.key.remoteJid
       copy.key.remoteJid = jid
       copy.key.fromMe = sender === conn.user.id
-    
+
       return proto.WebMessageInfo.fromObject(copy)
     }
-    
-    
+
+
     /**
     *
     * @param {*} path
@@ -505,7 +517,7 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
           ...type,
           data
       }
-    
+
     }
     //=====================================================
     conn.sendFile = async(jid, PATH, fileName, quoted = {}, options = {}) => {
@@ -614,11 +626,12 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
          */
     //=====================================================
     conn.sendTextWithMentions = async(jid, text, quoted, options = {}) => conn.sendMessage(jid, { text: text, contextInfo: { mentionedJid: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net') }, ...options }, { quoted })
-    
+
             /**
              *
              * @param {*} jid
              * @param {*} path
+             * @param {*} caption
              * @param {*} quoted
              * @param {*} options
              * @returns
@@ -628,7 +641,7 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
       let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split `,` [1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
       return await conn.sendMessage(jid, { image: buffer, caption: caption, ...options }, { quoted })
     }
-    
+
     /**
     *
     * @param {*} jid
@@ -640,12 +653,13 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
     */
     //=====================================================
     conn.sendText = (jid, text, quoted = '', options) => conn.sendMessage(jid, { text: text, ...options }, { quoted })
-    
+
     /**
      *
      * @param {*} jid
-     * @param {*} path
+     * @param {*} buttons
      * @param {*} caption
+     * @param {*} footer
      * @param {*} quoted
      * @param {*} options
      * @returns
@@ -677,7 +691,7 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
       }), options)
       conn.relayMessage(jid, template.message, { messageId: template.key.id })
     }
-    
+
     /**
     *
     * @param {*} jid
@@ -785,9 +799,9 @@ if (!isReact && config.CUSTOM_REACT === 'true') {
         };
     conn.serializeM = mek => sms(conn, mek, store);
   }
-  
+
   app.get("/", (req, res) => {
-  res.send("POPKID MD STARTED ✅");
+  res.send("SHADOW XTECH STARTED ✅");
   });
   app.listen(port, () => console.log(`Server listening on port http://localhost:${port}`));
   setTimeout(() => {
