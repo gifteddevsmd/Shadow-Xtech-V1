@@ -11,7 +11,7 @@
   "dependencies": {
     "@whiskeysockets/baileys": "npm:baileys-fizzy-pro@0.0.3",
     "@rodrigogs/baileys-store": "^1.0.1",
-    "@adiwajshing/keyed-db": "^0.2.4",
+    "@adiwajshing/keyed-db": "^1.2.4",
     "@dark-yasiya/yt-dl.js": "1.0.5",
     "@dark-yasiya/scrap": "1.0.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
