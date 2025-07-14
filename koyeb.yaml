@@ -1,4 +1,4 @@
-name: shadow-xtech
+name: shadow_xtech
 services:
   - name: shadow_xtech-service
     type: web
