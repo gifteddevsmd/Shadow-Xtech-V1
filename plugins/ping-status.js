@@ -1,68 +1,88 @@
 const config = require('../config');
 const { cmd, commands } = require('../command');
 
+const whatsappChannelLink = 'https://whatsapp.com/channel/0029VasHgfG4tRrwjAUyTs10';
+
 cmd({
     pattern: "ping",
-    alias: ["speed", "pong"],
-    use: '.ping',
-    desc: "Check bot's response time.",
-    category: "main",
-    react: "⚡",
-    filename: __filename
+    alias: ["speed", "pong"], 
+    use: '.ping', 
+    desc: "Check bot's response time, load, and stability.", 
+    category: "main", 
+    react: "⚡", 
+    filename: __filename 
 },
 async (conn, mek, m, { from, quoted, sender, reply }) => {
     try {
+        // --- Latency Measurement ---
         const start = Date.now();
-         // Stylish Emojis
-        const reactionEmojis = ['⚡', '🚀', '🔥', '💨', '🌟'];
+
+        // --- Status Indicators ---
         const statusEmojis = ['✅', '🟢', '✨', '📶', '🔋'];
-        
-        // Array of dynamic, fancy text messages
-        const fancyTexts = [
-            "“✨Stay foolish to stay sane.✨”",
-            "“🟢The only way to do great work is to love what you do.🎀”",
-            "“❤️Simplicity is the ultimate sophistication.💞”",
-            "“🤔Your time is limited, so don’t waste it living someone else’s life.🥹”",
-            "“✅Innovation distinguishes between a leader and a follower📊.”",
-            "“📆Strive for greatness.🟢”"
+
+        // --- Fancy Loading Messages ---
+        const loadingMessages = [
+            "*〘⚡ Analyzing bot speed... 〙*",
+            "*〘🚀 Calculating latency... 〙*",
+            "*〘📊 Checking system load... 〙*",
+            "*〘✨ Performing diagnostics... 〙*",
+            "*〘⚙️ Optimizing response... 〙*",
+            "*〘⏳ Gathering performance data... 〙*",
+            "*〘📡 Fetching real-time metrics... 〙*",
+            "*〘💡 Assessing bot health... 〙*"
         ];
-        const randomFancyText = fancyTexts[Math.floor(Math.random() * fancyTexts.length)];
+        // Select a random loading message to display.
+        const randomLoadingMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
 
-        // Initial "checking" message
+        // --- Speed and Latency Quotes ---
+        const speedLatencyQuotes = [
+            "“✨Speed is key in the digital realm.✨”",
+            "“🟢Latency is the silent killer of user experience.🎀”",
+            "“❤️Fast responses make a happy user.💞”",
+            "“🤔The quicker the bot, the better the service.🥹”",
+            "“✅Measuring performance, one ping at a time.📊”",
+            "“📆Where there's speed, there's progress.🟢”",
+            "“🚀Battling latency, one millisecond at a time.⚡”",
+            "“💡The art of the bot is in its swiftness.🌟”",
+            "“📈Performance is not just about speed, but consistency.⚙️”",
+            "“👑In the world of bots, speed is king.👑”",
+            "“💨Don't let latency slow you down!💨”",
+            "“⚡Our bot runs at the speed of thought... almost!⚡”"
+        ];
+        // Select a random quote to display.
+        const randomQuote = speedLatencyQuotes[Math.floor(Math.random() * speedLatencyQuotes.length)];
+
+        // Send the randomly selected "fancy" loading message.
         await conn.sendMessage(from, {
-            text: '*〘⏳ Checking bot speed... 〙*'
+            text: randomLoadingMessage
         });
-
         const end = Date.now();
-        const speed = end - start;
-
-        // Determine the bot's status based on speed
-        let status = "Stable";
-        if (speed > 1000) status = "Slow";
-        else if (speed > 500) status = "Moderate";
-
-        // Fetch the user's profile picture
+        const latencyMs = end - start; // This variable represents the bot's response latency in milliseconds.
+        let stabilityStatus = "Stable";
+        if (latencyMs > 1000) stabilityStatus = "Slow"; // Latency over 1 second
+        else if (latencyMs > 500) stabilityStatus = "Moderate"; // Latency between 500ms and 1000ms
+        const memoryUsage = process.memoryUsage();
+        const memoryUsageMB = memoryUsage.heapUsed / 1024 / 1024; // Convert bytes to Megabytes for readability.
         let profilePicUrl;
         try {
             profilePicUrl = await conn.profilePictureUrl(sender, 'image');
         } catch {
-            // Provide a default fallback image if the user has no profile picture
-            profilePicUrl = 'https://i.ibb.co/gdpjw5w/pp-wa-3.jpg';
+            profilePicUrl = 'https://i.ibb.co/gdpjw5w/pp-wa-3.jpg'; // Example fallback image URL
         }
-        
-        // Construct the stylish caption text
         const stylishText = `
-╭─❏ *『 BOT PING STATUS 』*
-│
-├─🤖 *Bot Name:* ${config.botname || 'SHADOW-XTECH'}
-├─⚡ *Speed:* ${statusEmojis[Math.floor(Math.random() * statusEmojis.length)]} ${speed}ms
-├─📶 *Status:* ${statusEmojis[Math.floor(Math.random() * statusEmojis.length)]} ${status}
-├─⏱️ *Checked At:* ${new Date().toLocaleTimeString()}
-│
-╰─❏ *${randomFancyText}!*
-        `.trim();
-
-        // Send the profile picture with the caption
+╭───────◇
+│ *🛠️ Bot Response and Speed 🛜*
+╰───────◇
+╭──〔 🌐 *Network Status* 〕──◇
+├─ 🤖 *Bot Name:* ${config.botname || 'SHADOW-XTECH'}
+├─ ⚡ *Latency:* ${statusEmojis[Math.floor(Math.random() * statusEmojis.length)]} ${latencyMs}ms
+├─ 📶 *Bot Load:* ${statusEmojis[Math.floor(Math.random() * statusEmojis.length)]} ${memoryUsageMB.toFixed(2)} MB
+├─ ✨ *Stability:* ${statusEmojis[Math.floor(Math.random() * statusEmojis.length)]} ${stabilityStatus}
+╰─ ⏱️ *Checked At:* *${new Date().toLocaleTimeString()}*
+╭───────◇
+│ *${randomQuote}!*
+╰───────◇
+        `.trim(); // .trim() removes any leading/trailing whitespace.
         await conn.sendMessage(from, {
             image: { url: profilePicUrl },
             caption: stylishText,
@@ -74,9 +94,18 @@ async (conn, mek, m, { from, quoted, sender, reply }) => {
                     newsletterJid: '120363369453603973@newsletter',
                     newsletterName: "𝐒ʜᴀᴅᴏᴡ-𝐗ᴛᴇᴄʜ",
                     serverMessageId: 143
+                },
+                // Added externalAdReply object here
+                externalAdReply: {
+                    title: "Shadow-Xtech Speed",
+                    body: "Powered By Black-Tappy",
+                    thumbnailUrl: 'https://files.catbox.moe/6g5aq0.jpg',
+                    sourceUrl: whatsappChannelLink,
+                    mediaType: 1, // 1 typically represents an image
+                    renderLargerThumbnail: false,
                 }
             }
-        }, { quoted: mek });
+        }, { quoted: mek }); // Reply to the original message
 
     } catch (e) {
         console.error("Error in ping command:", e);
